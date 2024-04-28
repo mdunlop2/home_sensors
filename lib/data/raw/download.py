@@ -20,10 +20,12 @@ def download_raw_data_if_not_exists() -> None:
     if os.path.exists(RAW_FILE_LOCATION):
         _LOGGER.debug(f"Not downloading again, {RAW_FILE_LOCATION} already exists.")
     else:
-        response = requests.get(_RAW_DATA_URL)
+        response = requests.get(_RAW_DATA_URL, timeout=2)
         if response.status_code == 200:
-            with open(RAW_FILE_LOCATION, 'wb') as f:
+            with open(RAW_FILE_LOCATION, "wb") as f:
                 f.write(response.content)
             _LOGGER.info(f"Raw data downloaded successfully to {RAW_FILE_LOCATION}")
         else:
-            _LOGGER.info(f"Failed to download {_RAW_DATA_URL}. The response was:\n{repr(response)}")
+            _LOGGER.info(
+                f"Failed to download {_RAW_DATA_URL}. The response was:\n{repr(response)}"
+            )
