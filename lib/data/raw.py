@@ -12,6 +12,14 @@ _RAW_DATA_URL = "https://imperialcollegelondon.box.com/shared/static/8se12flvva8
 _RAW_FILE_NAME = "data.db"
 RAW_FILE_LOCATION = os.path.join(DATA_RAW, _RAW_FILE_NAME)
 
+RAW_SCHEMA = {
+    "multiple_occupancy": "int64",
+    "home_id": "str",
+    "id": "str",
+    "location": "str",
+    "datetime": "datetime64[ns, UTC]"
+}
+
 
 def download_raw_data_if_not_exists() -> None:
     """
