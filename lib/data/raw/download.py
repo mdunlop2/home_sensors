@@ -26,6 +26,4 @@ def download_raw_data_if_not_exists() -> None:
                 f.write(response.content)
             _LOGGER.info(f"Raw data downloaded successfully to {RAW_FILE_LOCATION}")
         else:
-            _LOGGER.info(
-                f"Failed to download {_RAW_DATA_URL}. The response was:\n{repr(response)}"
-            )
+            _LOGGER.info(f"Failed to download {_RAW_DATA_URL}. The response was:\n{repr(response)}")
