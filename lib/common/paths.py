@@ -6,4 +6,5 @@ import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA = os.path.join(ROOT, "data")
-DATA_RAW = os.path.join(DATA, "raw")
+_DATABASE_NAME = "data.db"
+DATABASE_LOCATION = os.path.join(DATA, _DATABASE_NAME)
