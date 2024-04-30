@@ -17,4 +17,4 @@ USER ${NB_UID}
 COPY requirements.txt .
 RUN mamba install --file requirements.txt
 
-ENV PYTHONPATH=/home/$NB_USER:$PYTHONPATH
+ENV PYTHONPATH=/home/$NB_USER/work:$PYTHONPATH

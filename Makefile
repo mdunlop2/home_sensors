@@ -15,5 +15,5 @@ lint:
 
 py-test:
 	@echo "Running tests..."
-	pytest
+	pytest -v -s
 	@echo "Tests complete!"
