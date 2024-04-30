@@ -40,3 +40,4 @@ def add_train_valid_test_split_table(database_location: str) -> None:
     homes["is_train"] = idx < train_rows
     homes["is_valid"] = (~homes["is_train"]) & (idx < train_rows + valid_rows)
     homes.to_sql(TRAIN_VALID_TEST_TABLE, conn, index=False, if_exists="replace")
+    _LOGGER.info(f"Table {TRAIN_VALID_TEST_TABLE} added successfully.")

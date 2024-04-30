@@ -8,14 +8,6 @@ _LOGGER = get_logger(__name__)
 
 _RAW_DATA_URL = "https://imperialcollegelondon.box.com/shared/static/8se12flvva8jcpqwehuyuxob0uj4kfr4.db"
 
-RAW_SCHEMA = {
-    "multiple_occupancy": "int64",
-    "home_id": "str",
-    "id": "str",
-    "location": "str",
-    "datetime": "datetime64[ns, UTC]",
-}
-
 
 def download_raw_data_if_not_exists(database_location) -> None:
     """
