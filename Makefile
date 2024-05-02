@@ -9,7 +9,7 @@ format:
 
 lint:
 	@echo "Running linting checks..."
-	pylint --max-line-length=$(LINE_LENGTH) data lib test
+	pylint --max-line-length=$(LINE_LENGTH) data lib test integration_test
 	mypy --disable-error-code=import-untyped .
 	@echo "Linting complete!"
 

@@ -114,3 +114,13 @@ def add_elapsed_time(time_series: pd.DataFrame) -> pd.DataFrame:
         hours=1
     )
     return time_series
+
+
+def add_all_features(raw_data: pd.DataFrame, multi_location_windows: list[str]) -> pd.DataFrame:
+    locations = list(set(raw_data["location"]))
+    time_series = transform_sensor_triggers_to_time_series(raw_data)
+    for window in multi_location_windows:
+        time_series = add_multiple_location_triggers_in_window(time_series, window, locations)
+    time_series = add_cumulative_triggers(time_series, locations)
+    time_series = add_elapsed_time(time_series)
+    return time_series
