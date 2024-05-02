@@ -3,8 +3,8 @@ LINE_LENGTH := 120
 format:
 	@echo "Formatting Python files..."
 	black --line-length $(LINE_LENGTH) .
-	isort .
-	autoflake --in-place --remove-unused-variables .
+	isort --multi-line=3 --trailing-comma --line-length=$(LINE_LENGTH) .
+	autoflake  --in-place --remove-unused-variables .
 	@echo "Formatting complete!"
 
 lint:

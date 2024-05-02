@@ -2,9 +2,12 @@ import datetime as dt
 
 import pandas as pd
 
-from lib.data.features import (add_cumulative_triggers, add_elapsed_time,
-                               add_multiple_location_triggers_in_window,
-                               transform_sensor_triggers_to_time_series)
+from lib.data.features import (
+    add_cumulative_triggers,
+    add_elapsed_time,
+    add_multiple_location_triggers_in_window,
+    transform_sensor_triggers_to_time_series,
+)
 
 _SAMPLE_LOCATIONS = ["bedroom1", "bathroom1", "hallway"]
 
