@@ -15,5 +15,10 @@ lint:
 
 py-test:
 	@echo "Running tests..."
-	pytest -v -s
+	pytest -v -s test
 	@echo "Tests complete!"
+
+py-integration-test:
+	@echo "Runningb integration tests..."
+	pytest -v -s integration_test
+	@echo "Integration tests complete!"
