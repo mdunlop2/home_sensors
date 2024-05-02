@@ -48,7 +48,7 @@ def transform_sensor_triggers_to_time_series(raw_data: pd.DataFrame) -> pd.DataF
     """
     time_series = (
         raw_data.assign(ones=1)
-        .pivot_table(index=["home_id", "datetime"], columns=["location"], values="ones", aggfunc="first")
+        .pivot_table(index=["home_id", "datetime", "multiple_occupancy"], columns=["location"], values="ones", aggfunc="first")
         .fillna(0)
         .sort_index()
         .astype(np.int64)

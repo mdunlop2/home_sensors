@@ -16,6 +16,7 @@ def get_sample_raw_data() -> pd.DataFrame:
     """example raw data"""
     df_a = pd.DataFrame(
         {
+            "multiple_occupancy": 1,
             "home_id": "a",
             "datetime": pd.to_datetime(
                 [
@@ -29,7 +30,7 @@ def get_sample_raw_data() -> pd.DataFrame:
         }
     )
     df_b = pd.DataFrame(
-        {"home_id": "b", "datetime": pd.to_datetime([dt.datetime(2024, 1, 1)]), "location": ["hallway"]}
+        {"multiple_occupancy": 0, "home_id": "b", "datetime": pd.to_datetime([dt.datetime(2024, 1, 1)]), "location": ["hallway"]}
     )
     return pd.concat([df_a, df_b], axis=0, ignore_index=True)
 
@@ -42,6 +43,7 @@ def get_sample_time_series() -> pd.DataFrame:
             "datetime": pd.to_datetime(
                 [dt.datetime(2024, 1, 1), dt.datetime(2024, 1, 1, 1), dt.datetime(2024, 1, 1, 2)]
             ),
+            "multiple_occupancy": 1,
             "bathroom1": [0, 1, 1],
             "bedroom1": [1, 1, 0],
             "hallway": 0,
@@ -51,6 +53,7 @@ def get_sample_time_series() -> pd.DataFrame:
         {
             "home_id": "b",
             "datetime": pd.to_datetime([dt.datetime(2024, 1, 1)]),
+            "multiple_occupancy": 0,
             "bathroom1": [0],
             "bedroom1": [0],
             "hallway": [1],
