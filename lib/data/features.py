@@ -117,10 +117,16 @@ def add_elapsed_time(time_series: pd.DataFrame) -> pd.DataFrame:
 
 
 def add_all_features(raw_data: pd.DataFrame, multi_location_windows: list[str]) -> pd.DataFrame:
+    """Convenience function for building all features"""
     locations = list(set(raw_data["location"]))
     time_series = transform_sensor_triggers_to_time_series(raw_data)
     for window in multi_location_windows:
         time_series = add_multiple_location_triggers_in_window(time_series, window, locations)
-    time_series = add_cumulative_triggers(time_series, locations)
+    multiple_location_event_columns = [f"multiple_room_triggers_{window}" for window in multi_location_windows]
+    time_series = add_cumulative_triggers(time_series, locations + multiple_location_event_columns)
     time_series = add_elapsed_time(time_series)
+    for col in ["total_cumulative"] + multiple_location_event_columns:
+        new_col = col.replace("_cumulative", "") + "_per_hour"
+        time_series[new_col] = time_series[col] / time_series["elapsed_time_hours"]
+    time_series["bathroom_proportion"] = (time_series["bathroom1_cumulative"] + time_series["WC1_cumulative"]) / time_series["total_cumulative"]
     return time_series
