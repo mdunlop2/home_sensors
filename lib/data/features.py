@@ -1,3 +1,4 @@
+import datetime as dt
 import sqlite3
 
 import numpy as np
@@ -97,3 +98,19 @@ def add_cumulative_triggers(time_series: pd.DataFrame, locations: list[str]) -> 
     cumulative = time_series.groupby("home_id")[locations + ["total"]].cumsum()
     cumulative.columns = [col + "_cumulative" for col in cumulative.columns]
     return pd.concat([time_series, cumulative], axis=1)
+
+
+def add_elapsed_time(time_series: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add the cumulative time that has passed since the first sensor trigger at each home
+    """
+    start_time = (
+        time_series.groupby(["home_id"], as_index=False)
+        .agg({"datetime": "min"})
+        .rename(columns={"datetime": "start_datetime"})
+    )
+    time_series = pd.merge(time_series, start_time, on="home_id")
+    time_series["elapsed_time_hours"] = (time_series["datetime"] - time_series["start_datetime"]) / dt.timedelta(
+        hours=1
+    )
+    return time_series

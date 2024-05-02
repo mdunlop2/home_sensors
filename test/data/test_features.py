@@ -2,7 +2,7 @@ import datetime as dt
 
 import pandas as pd
 
-from lib.data.features import (add_cumulative_triggers,
+from lib.data.features import (add_cumulative_triggers, add_elapsed_time,
                                add_multiple_location_triggers_in_window,
                                transform_sensor_triggers_to_time_series)
 
@@ -100,6 +100,27 @@ def get_sample_time_series_with_cumulative_triggers():
     return pd.merge(time_series, feature, on=["home_id", "datetime"])
 
 
+def get_sample_time_series_with_elapsed_time() -> pd.DataFrame:
+    """sample time series with elapsed time from first sensor per home"""
+    time_series = get_sample_time_series()
+    feature = pd.DataFrame(
+        {
+            "home_id": ["a", "a", "a", "b"],
+            "datetime": pd.to_datetime(
+                [
+                    dt.datetime(2024, 1, 1),
+                    dt.datetime(2024, 1, 1, 1),
+                    dt.datetime(2024, 1, 1, 2),
+                    dt.datetime(2024, 1, 1),
+                ]
+            ),
+            "start_datetime": pd.to_datetime(dt.datetime(2024, 1, 1)),
+            "elapsed_time_hours": [0.0, 1.0, 2.0, 0.0],
+        }
+    )
+    return pd.merge(time_series, feature, on=["home_id", "datetime"])
+
+
 def test_transform_sensor_triggers_to_time_series() -> None:
     """verify transformation to a time series"""
     raw_data = get_sample_raw_data()
@@ -122,6 +143,14 @@ def test_cumulative_triggers() -> None:
     time_series = get_sample_time_series()
     expected_result = get_sample_time_series_with_cumulative_triggers()
     result = add_cumulative_triggers(time_series, _SAMPLE_LOCATIONS)
+    pd.testing.assert_frame_equal(result, expected_result)
+
+
+def test_elapsed_time() -> None:
+    """verify elapsed time as expected"""
+    time_series = get_sample_time_series()
+    expected_result = get_sample_time_series_with_elapsed_time()
+    result = add_elapsed_time(time_series)
     pd.testing.assert_frame_equal(result, expected_result)
 
 
