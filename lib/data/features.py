@@ -46,6 +46,7 @@ def transform_sensor_triggers_to_time_series(raw_data: pd.DataFrame) -> pd.DataF
     """
     Transform a sequence of sensor triggers into a time series where each column represents a trigger in a location.
     """
+    locations = list(set(raw_data["location"]))
     time_series = (
         raw_data.assign(ones=1)
         .pivot_table(index=["home_id", "datetime", "multiple_occupancy"], columns=["location"], values="ones", aggfunc="first")
@@ -54,6 +55,7 @@ def transform_sensor_triggers_to_time_series(raw_data: pd.DataFrame) -> pd.DataF
         .astype(np.int64)
     )
     time_series.columns.name = None
+    time_series["total_all_locations"] = time_series[locations].sum(axis=1)
     return time_series.reset_index()
 
 
@@ -90,12 +92,11 @@ def add_multiple_location_triggers_in_window(
     return time_series.sort_values(["home_id", "datetime"])
 
 
-def add_cumulative_triggers(time_series: pd.DataFrame, locations: list[str]) -> pd.DataFrame:
+def add_cumulative_triggers(time_series: pd.DataFrame, columns_to_sum: list[str]) -> pd.DataFrame:
     """
     Record cumulative sensor counts per location
     """
-    time_series["total"] = time_series[locations].sum(axis=1)
-    cumulative = time_series.groupby("home_id")[locations + ["total"]].cumsum()
+    cumulative = time_series.groupby("home_id")[columns_to_sum].cumsum()
     cumulative.columns = [col + "_cumulative" for col in cumulative.columns]
     return pd.concat([time_series, cumulative], axis=1)
 
@@ -123,9 +124,10 @@ def add_all_features(raw_data: pd.DataFrame, multi_location_windows: list[str]) 
     for window in multi_location_windows:
         time_series = add_multiple_location_triggers_in_window(time_series, window, locations)
     multiple_location_event_columns = [f"multiple_room_triggers_{window}" for window in multi_location_windows]
-    time_series = add_cumulative_triggers(time_series, locations + multiple_location_event_columns)
+    columns_to_sum = locations + multiple_location_event_columns + ["total_all_locations"]
+    time_series = add_cumulative_triggers(time_series, columns_to_sum)
     time_series = add_elapsed_time(time_series)
-    for col in ["total_cumulative"] + multiple_location_event_columns:
+    for col in ["total_all_locations_cumulative"] + multiple_location_event_columns:
         new_col = col.replace("_cumulative", "") + "_per_hour"
         time_series[new_col] = time_series[col] / time_series["elapsed_time_hours"]
     time_series["bathroom_proportion"] = (time_series["bathroom1_cumulative"] + time_series["WC1_cumulative"]) / time_series["total_cumulative"]

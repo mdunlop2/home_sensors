@@ -24,13 +24,13 @@ class StepwiseFeatureSelector(BaseEstimator, TransformerMixin):
             X_train, X_val = X[train_index], X[val_index]
             y_train, y_val = y[train_index], y[val_index]
             self.estimator.fit(X_train[:, feature_set], y_train)
-            y_pred = self.estimator.predict(X_val[:, feature_set])
+            y_pred = self.estimator.predict_proba(X_val[:, feature_set])[: ,1]
             scores.append(self.scoring(y_val, y_pred))
-        return np.mean(scores)
+        return np.median(scores)
 
     def _stepwise_selection(self, X, y):
-        best_features = [0]  # always start with intercept
-        best_score = -np.inf
+        best_features = []
+        best_score = 0.5
         
         remaining_features = list(range(X.shape[1]))
         
