@@ -15,6 +15,10 @@ _LOGGER = get_logger(__name__)
 
 
 class StepwiseFeatureSelector(BaseEstimator, TransformerMixin):
+    """
+    Stepwise feature selection for Sklearn Pipelines
+    """
+
     def __init__(
         self,
         estimator: Union[DecisionTreeClassifier, LogisticRegression],
@@ -33,13 +37,15 @@ class StepwiseFeatureSelector(BaseEstimator, TransformerMixin):
                 * create a new model including the feature
                 * evaluate unseen performance of new model with cross-validation
             * find feature providing best new model
-            * if adding this feature improved out of sample performance on average by more than 1%, we include it in the model and remove it from remaining features
+            * if adding this feature improved out of sample performance on average by more than 1%
+              include it in the model and remove it from remaining features
             * if no improvement in the model from adding any feature, break
         ```
         """
         self.estimator = estimator
         self.scoring = roc_auc_score
         self.n_jobs = n_jobs
+        self.selected_features_ = None
         self.cv = StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
         self.min_improvement_r = min_improvement_r
 
@@ -72,7 +78,8 @@ class StepwiseFeatureSelector(BaseEstimator, TransformerMixin):
             best_idx = np.argmax(scores)
             if best_score * (1 + self.min_improvement_r) >= scores[best_idx]:
                 _LOGGER.info(
-                    f"Finishing as selection best score {scores[best_idx]} was not better than existing model {best_score}"
+                    f"Finishing as selection best score {scores[best_idx]:.3f}"
+                    f"was not better than existing model {best_score:.3f}"
                 )
                 break
             selected_feature = remaining_features.pop(best_idx)

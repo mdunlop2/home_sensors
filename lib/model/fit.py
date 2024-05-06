@@ -30,7 +30,8 @@ def add_fake_features(df_train, n_fake_features) -> tuple[pd.DataFrame, list[str
 
 def post_warmup_locator(df: pd.DataFrame, minimum_observations: int, minimum_elapsed_time_hours: float):
     """
-    It may take several observations before a rate (count variable divided by time) is stable enough to be used for predictions.
+    It may take several observations before a rate (count variable divided by time) is stable enough
+    to be used for predictions.
     Returns the indices of the dataset that have passed this warmup period.
     """
     pass_minimum_observations = df["total_all_locations_cumulative"] > minimum_observations
