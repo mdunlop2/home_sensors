@@ -1,13 +1,13 @@
-from sklearn.datasets import make_classification
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import make_scorer, roc_auc_score
-from sklearn.base import BaseEstimator, TransformerMixin
 from itertools import combinations
-from joblib import Parallel, delayed
+
 import numpy as np
-from sklearn.model_selection import StratifiedKFold
+from joblib import Parallel, delayed
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.datasets import make_classification
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import make_scorer, roc_auc_score
+from sklearn.model_selection import GridSearchCV, StratifiedKFold
+from sklearn.pipeline import Pipeline
 
 
 class StepwiseFeatureSelector(BaseEstimator, TransformerMixin):
@@ -32,16 +32,16 @@ class StepwiseFeatureSelector(BaseEstimator, TransformerMixin):
         best_score = -np.inf
         best_features = []
         remaining_features = list(range(X.shape[1]))
-        
+
         while remaining_features:
             scores = Parallel(n_jobs=self.n_jobs)(
-                delayed(self._calculate_score)(X, y, 
-                                                best_features + [feature]) 
-                for feature in remaining_features
+                delayed(self._calculate_score)(X, y, best_features + [feature]) for feature in remaining_features
             )
             best_idx = np.argmax(scores)
             if best_score >= scores[best_idx]:
-                print(f"Finishing as selection best score {scores[best_idx]} was not better than existing model {best_score}")
+                print(
+                    f"Finishing as selection best score {scores[best_idx]} was not better than existing model {best_score}"
+                )
                 break
             selected_feature = remaining_features.pop(best_idx)
             best_features.append(selected_feature)
@@ -67,10 +67,12 @@ def main():
     print("Shape of labels:", y.shape)
 
     # Create the pipeline
-    pipeline = Pipeline([
-        ('feature_selector', StepwiseFeatureSelector(estimator=LogisticRegression())),
-        ('classifier', LogisticRegression())
-    ])
+    pipeline = Pipeline(
+        [
+            ("feature_selector", StepwiseFeatureSelector(estimator=LogisticRegression())),
+            ("classifier", LogisticRegression()),
+        ]
+    )
     pipeline.fit(X, y)
     pred_skl = pipeline.predict(X.astype(np.float64))
     accuracy = roc_auc_score(y, pred_skl)

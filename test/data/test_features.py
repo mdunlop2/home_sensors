@@ -30,7 +30,12 @@ def get_sample_raw_data() -> pd.DataFrame:
         }
     )
     df_b = pd.DataFrame(
-        {"multiple_occupancy": 0, "home_id": "b", "datetime": pd.to_datetime([dt.datetime(2024, 1, 1)]), "location": ["hallway"]}
+        {
+            "multiple_occupancy": 0,
+            "home_id": "b",
+            "datetime": pd.to_datetime([dt.datetime(2024, 1, 1)]),
+            "location": ["hallway"],
+        }
     )
     return pd.concat([df_a, df_b], axis=0, ignore_index=True)
 
@@ -47,6 +52,7 @@ def get_sample_time_series() -> pd.DataFrame:
             "bathroom1": [0, 1, 1],
             "bedroom1": [1, 1, 0],
             "hallway": 0,
+            "total_all_locations": [1, 2, 1],
         }
     )
     df_b = pd.DataFrame(
@@ -57,6 +63,7 @@ def get_sample_time_series() -> pd.DataFrame:
             "bathroom1": [0],
             "bedroom1": [0],
             "hallway": [1],
+            "total_all_locations": [1],
         }
     )
     return pd.concat([df_a, df_b], axis=0, ignore_index=True)
@@ -96,11 +103,10 @@ def get_sample_time_series_with_cumulative_triggers():
                     dt.datetime(2024, 1, 1),
                 ]
             ),
-            "total": [1, 2, 1, 1],
             "bedroom1_cumulative": [1, 2, 2, 0],
             "bathroom1_cumulative": [0, 1, 2, 0],
             "hallway_cumulative": [0, 0, 0, 1],
-            "total_cumulative": [1, 3, 4, 1],
+            "total_all_locations_cumulative": [1, 3, 4, 1],
         }
     )
     return pd.merge(time_series, feature, on=["home_id", "datetime"])
@@ -148,7 +154,8 @@ def test_cumulative_triggers() -> None:
     """verify cumulative triggers perform as expected"""
     time_series = get_sample_time_series()
     expected_result = get_sample_time_series_with_cumulative_triggers()
-    result = add_cumulative_triggers(time_series, _SAMPLE_LOCATIONS)
+    columns_to_sum = _SAMPLE_LOCATIONS + ["total_all_locations"]
+    result = add_cumulative_triggers(time_series, columns_to_sum)
     pd.testing.assert_frame_equal(result, expected_result)
 
 
@@ -161,5 +168,8 @@ def test_elapsed_time() -> None:
 
 
 if __name__ == "__main__":
-    df = get_sample_time_series_with_2h_multiple_location_trigger()
-    print(df)
+    time_series = get_sample_time_series()
+    expected_result = get_sample_time_series_with_cumulative_triggers()
+    columns_to_sum = _SAMPLE_LOCATIONS + ["total_all_locations"]
+    result = add_cumulative_triggers(time_series, columns_to_sum)
+    pd.testing.assert_frame_equal(result, expected_result)

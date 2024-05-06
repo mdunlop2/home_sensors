@@ -49,7 +49,9 @@ def transform_sensor_triggers_to_time_series(raw_data: pd.DataFrame) -> pd.DataF
     locations = list(set(raw_data["location"]))
     time_series = (
         raw_data.assign(ones=1)
-        .pivot_table(index=["home_id", "datetime", "multiple_occupancy"], columns=["location"], values="ones", aggfunc="first")
+        .pivot_table(
+            index=["home_id", "datetime", "multiple_occupancy"], columns=["location"], values="ones", aggfunc="first"
+        )
         .fillna(0)
         .sort_index()
         .astype(np.int64)
@@ -130,5 +132,7 @@ def add_all_features(raw_data: pd.DataFrame, multi_location_windows: list[str]) 
     for col in ["total_all_locations_cumulative"] + multiple_location_event_columns:
         new_col = col.replace("_cumulative", "") + "_per_hour"
         time_series[new_col] = time_series[col] / time_series["elapsed_time_hours"]
-    time_series["bathroom_proportion"] = (time_series["bathroom1_cumulative"] + time_series["WC1_cumulative"]) / time_series["total_cumulative"]
+    time_series["bathroom_proportion"] = (
+        time_series["bathroom1_cumulative"] + time_series["WC1_cumulative"]
+    ) / time_series["total_all_locations_cumulative"]
     return time_series

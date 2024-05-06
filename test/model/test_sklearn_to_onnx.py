@@ -20,7 +20,6 @@ def test_sklearn_to_onnx() -> None:
     X, y = load_diabetes(return_X_y=True)
     X_train, X_test, y_train, _ = train_test_split(X, y)
 
-    # Train classifiers
     reg1 = GradientBoostingRegressor(random_state=1, n_estimators=5)
     reg2 = RandomForestRegressor(random_state=1, n_estimators=5)
     reg3 = LinearRegression()
