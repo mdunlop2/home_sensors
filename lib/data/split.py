@@ -4,8 +4,7 @@ import numpy as np
 import pandas as pd
 
 from lib.common.logging import get_logger
-from lib.common.tables import (HOMES_TABLE, MOTION_TABLE,
-                               TRAIN_VALID_TEST_TABLE, table_has_data)
+from lib.common.tables import HOMES_TABLE, MOTION_TABLE, TRAIN_VALID_TEST_TABLE, table_has_data
 
 _LOGGER = get_logger(__name__)
 

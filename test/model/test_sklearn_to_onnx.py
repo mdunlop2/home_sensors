@@ -2,8 +2,7 @@ import numpy as np
 from onnxruntime import InferenceSession
 from skl2onnx import to_onnx
 from sklearn.datasets import load_diabetes
-from sklearn.ensemble import (GradientBoostingRegressor, RandomForestRegressor,
-                              VotingRegressor)
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor, VotingRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -21,7 +20,6 @@ def test_sklearn_to_onnx() -> None:
     X, y = load_diabetes(return_X_y=True)
     X_train, X_test, y_train, _ = train_test_split(X, y)
 
-    # Train classifiers
     reg1 = GradientBoostingRegressor(random_state=1, n_estimators=5)
     reg2 = RandomForestRegressor(random_state=1, n_estimators=5)
     reg3 = LinearRegression()

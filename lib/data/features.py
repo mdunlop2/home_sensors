@@ -1,5 +1,7 @@
+import datetime as dt
 import sqlite3
 
+import numpy as np
 import pandas as pd
 
 RAW_SCHEMA = {
@@ -38,3 +40,99 @@ def read_raw_data(database_location: str, train: bool = False, valid: bool = Fal
     on homes.id = tvt.home_id
     """
     return pd.read_sql(sql, conn, dtype=RAW_SCHEMA)
+
+
+def transform_sensor_triggers_to_time_series(raw_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Transform a sequence of sensor triggers into a time series where each column represents a trigger in a location.
+    """
+    locations = list(set(raw_data["location"]))
+    time_series = (
+        raw_data.assign(ones=1)
+        .pivot_table(
+            index=["home_id", "datetime", "multiple_occupancy"], columns=["location"], values="ones", aggfunc="first"
+        )
+        .fillna(0)
+        .sort_index()
+        .astype(np.int64)
+    )
+    time_series.columns.name = None
+    time_series["total_all_locations"] = time_series[locations].sum(axis=1)
+    return time_series.reset_index()
+
+
+def _multiple_columns_1_in_window(x):
+    sum_per_column = np.sum(x, axis=0)
+    columns_with_at_least_1_motion = np.sum(sum_per_column > 0)
+    return columns_with_at_least_1_motion > 1
+
+
+def _add_multiple_room_triggers_in_window_single_home(
+    time_series: pd.DataFrame, window: str, locations: list[str]
+) -> pd.DataFrame:
+    wide_result = (
+        time_series[["datetime"] + locations]
+        .rolling(window, on="datetime", method="table")
+        .apply(_multiple_columns_1_in_window, engine="numba", raw=True)
+    )
+    time_series[f"multiple_room_triggers_{window}"] = wide_result[locations[0]].astype(
+        int
+    )  # can take any location as they all have same values
+    return time_series
+
+
+def add_multiple_location_triggers_in_window(
+    time_series: pd.DataFrame, window: str, locations: list[str]
+) -> pd.DataFrame:
+    """
+    1 if multiple rooms were triggered during the time window ending at that minute, 0 otherwise
+    """
+    results = []
+    for _, df in time_series.groupby("home_id"):
+        results.append(_add_multiple_room_triggers_in_window_single_home(df, window, locations))
+    time_series = pd.concat(results, axis=0, ignore_index=True)
+    return time_series.sort_values(["home_id", "datetime"])
+
+
+def add_cumulative_triggers(time_series: pd.DataFrame, columns_to_sum: list[str]) -> pd.DataFrame:
+    """
+    Record cumulative sensor counts per location
+    """
+    cumulative = time_series.groupby("home_id")[columns_to_sum].cumsum()
+    cumulative.columns = [col + "_cumulative" for col in cumulative.columns]
+    return pd.concat([time_series, cumulative], axis=1)
+
+
+def add_elapsed_time(time_series: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add the cumulative time that has passed since the first sensor trigger at each home
+    """
+    start_time = (
+        time_series.groupby(["home_id"], as_index=False)
+        .agg({"datetime": "min"})
+        .rename(columns={"datetime": "start_datetime"})
+    )
+    time_series = pd.merge(time_series, start_time, on="home_id")
+    time_series["elapsed_time_hours"] = (time_series["datetime"] - time_series["start_datetime"]) / dt.timedelta(
+        hours=1
+    )
+    return time_series
+
+
+def add_all_features(raw_data: pd.DataFrame, multi_location_windows: list[str]) -> pd.DataFrame:
+    """Convenience function for building all features"""
+    locations = list(set(raw_data["location"]))
+    time_series = transform_sensor_triggers_to_time_series(raw_data)
+    for window in multi_location_windows:
+        time_series = add_multiple_location_triggers_in_window(time_series, window, locations)
+    multiple_location_event_columns = [f"multiple_room_triggers_{window}" for window in multi_location_windows]
+    columns_to_sum = locations + multiple_location_event_columns + ["total_all_locations"]
+    time_series = add_cumulative_triggers(time_series, columns_to_sum)
+    time_series = add_elapsed_time(time_series)
+    for col in ["total_all_locations_cumulative"] + multiple_location_event_columns:
+        new_col = col.replace("_cumulative", "") + "_per_hour"
+        time_series[new_col] = time_series[col] / time_series["elapsed_time_hours"]
+    time_series["bathroom_proportion"] = (
+        time_series["bathroom1_cumulative"] + time_series["WC1_cumulative"]
+    ) / time_series["total_all_locations_cumulative"]
+    return time_series
