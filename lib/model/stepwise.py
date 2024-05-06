@@ -45,7 +45,7 @@ class StepwiseFeatureSelector(BaseEstimator, TransformerMixin):
         self.estimator = estimator
         self.scoring = roc_auc_score
         self.n_jobs = n_jobs
-        self.selected_features_ = None
+        self.selected_features_: list[int] = []
         self.cv = StratifiedKFold(n_splits=cv, shuffle=True, random_state=42)
         self.min_improvement_r = min_improvement_r
 
@@ -66,7 +66,7 @@ class StepwiseFeatureSelector(BaseEstimator, TransformerMixin):
         """
         Perform forward stepwise feature selection algorithm
         """
-        best_features = []
+        best_features: list[int] = []
         best_score = 0.5
 
         remaining_features = list(range(X.shape[1]))
